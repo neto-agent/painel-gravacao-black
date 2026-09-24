@@ -18,4 +18,4 @@ export async function middleware(request) {
   return NextResponse.redirect(url);
 }
 
-export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.json|icon-192.png|icon-512.png|apple-touch-icon.png).*)"] };
+export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.json|.*\\.png).*)"] };
