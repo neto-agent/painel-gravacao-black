@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { pegar, salvar } from "../../../../lib/store";
-import { EDITAVEIS, DIA_IDS, dayLabel } from "../../../../lib/campos";
+import { EDITAVEIS, isData, dayLabel } from "../../../../lib/campos";
 import { FASES } from "../../../../lib/fases";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ export async function PATCH(request, { params }) {
       if (!FASES.includes(v)) return NextResponse.json({ error: "fase inválida" }, { status: 400 });
       update.phase = v;
     } else if (k === "day") {
-      if (v !== "" && !DIA_IDS.includes(v)) return NextResponse.json({ error: "dia inválido" }, { status: 400 });
+      if (v !== "" && !isData(v)) return NextResponse.json({ error: "data inválida" }, { status: 400 });
       update.day = v || null;
       update.day_label = dayLabel(v);
     } else {
