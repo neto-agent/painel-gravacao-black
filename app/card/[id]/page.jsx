@@ -178,7 +178,7 @@ export default function CardPage({ params }) {
   const paragrafos = (card.script || "").split(/\n\s*\n/).filter(Boolean);
 
   return (
-    <div style={{ paddingBottom: 110 }}>
+    <div className="card-page" style={{ paddingBottom: 110 }}>
       <div className="tp-top">
         <div className="linha1">
           <button className="btn-voltar" onClick={async () => { if (editando) await flush(); router.push("/"); }}>←</button>
