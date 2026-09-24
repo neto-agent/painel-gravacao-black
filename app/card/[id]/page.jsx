@@ -24,6 +24,7 @@ export default function CardPage({ params }) {
   const [fonte, setFonte] = useState(26);
   const [notes, setNotes] = useState("");
   const [salvo, setSalvo] = useState(false);
+  const restoRef = useRef(0);
   const rafRef = useRef(null);
   const ultimoRef = useRef(null);
   const [editando, setEditando] = useState(false);
@@ -134,11 +135,19 @@ export default function CardPage({ params }) {
       if (ultimoRef.current == null) ultimoRef.current = ts;
       const dt = (ts - ultimoRef.current) / 1000;
       ultimoRef.current = ts;
-      window.scrollBy(0, vel * dt);
+      // acumula frações de pixel: no iPhone, rolar 0,5px por vez arredonda pra zero e o texto não anda
+      restoRef.current += vel * dt;
+      const px = Math.floor(restoRef.current);
+      if (px >= 1) { window.scrollBy(0, px); restoRef.current -= px; }
+      const fim = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      if (fim) { setRolling(false); return; }
       rafRef.current = requestAnimationFrame(passo);
     }
     rafRef.current = requestAnimationFrame(passo);
-    return () => cancelAnimationFrame(rafRef.current);
+    // mantém a tela acesa enquanto o teleprompter roda (quando o navegador deixa)
+    let trava = null;
+    try { navigator.wakeLock?.request("screen").then((t) => { trava = t; }).catch(() => {}); } catch {}
+    return () => { cancelAnimationFrame(rafRef.current); try { trava && trava.release(); } catch {} };
   }, [rolling, vel]);
 
   async function mudarStatus(status) {
