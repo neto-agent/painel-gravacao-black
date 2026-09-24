@@ -69,7 +69,7 @@ export default function NovoRoteiro() {
       <Editor valores={valores} onChange={mudar} focoCampo="title" camposExtrasAbertos={mais} />
 
       {!mais && (
-        <button className="ed-mais" onClick={() => setMais(true)}>+ Mais campos (legenda, cena, figurino, CTA...)</button>
+        <button className="ed-mais" onClick={() => setMais(true)}>+ Mais campos (legenda, texto na tela, CTA...)</button>
       )}
 
       {erro && <div className="ed-erro">{erro}</div>}
