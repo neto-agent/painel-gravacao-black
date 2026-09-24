@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const cards = (await listar()).filter((c) => !c.deleted_at).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-    return NextResponse.json({ cards });
+    return NextResponse.json({ cards, demo: process.env.DEMO === "1", aberto: !process.env.PANEL_PASSWORD });
   } catch (e) {
-    return NextResponse.json({ error: String(e.message || e) }, { status: 500 });
+    return NextResponse.json({ error: String(e.message || e), codigo: e.codigo || null }, { status: 500 });
   }
 }
 
