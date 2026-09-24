@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FASES, faseClasse } from "../lib/fases";
-import { DIAS } from "../lib/campos";
+import { dataCurta } from "../lib/campos";
 import Biblioteca from "../lib/Biblioteca";
 import { Configurar, BoasVindas } from "../lib/Avisos";
 
@@ -42,6 +42,7 @@ export default function BoardPage() {
   const [cenario, setCenario] = useState("todos");
   const [figurino, setFigurino] = useState("todos");
   const [fase, setFase] = useState("todas");
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [apagado, setApagado] = useState(null);
   const [modo, setModo] = useState("roteiros");
   const [info, setInfo] = useState({});
@@ -185,6 +186,9 @@ export default function BoardPage() {
   const base = useMemo(() => cards || [], [cards]);
   const cenarios = useMemo(() => [...new Set(base.map((c) => c.setting).filter(Boolean))].sort(), [base]);
   const figurinos = useMemo(() => [...new Set(base.map((c) => c.outfit).filter(Boolean))].sort(), [base]);
+  const datas = useMemo(() => [...new Set(base.map((c) => c.day).filter((d) => dataCurta(d)))].sort(), [base]);
+  const nFiltros = [dia !== "todos", cenario !== "todos", figurino !== "todos", fase !== "todas"].filter(Boolean).length;
+  function limparFiltros() { setDia("todos"); setCenario("todos"); setFigurino("todos"); setFase("todas"); }
 
   const termos = useMemo(() => norm(busca).split(/\s+/).filter(Boolean), [busca]);
   const filtrados = useMemo(() => base.filter((c) =>
@@ -260,37 +264,52 @@ export default function BoardPage() {
       {busca && cards && <div className="busca-info">{filtrados.length} {filtrados.length === 1 ? "roteiro encontrado" : "roteiros encontrados"} para "{busca}"</div>}
 
       <div className="filtros-wrap">
-      <div className="filters">
-        <button className={"chip" + (dia === "todos" ? " ativo" : "")} onClick={() => setDia("todos")}>Todos os dias</button>
-        {DIAS.filter((d) => d.id).map((d) => (
-          <button key={d.id} className={"chip" + (dia === d.id ? " ativo" : "")} onClick={() => setDia(d.id)}>{d.label}</button>
-        ))}
-        {cenarios.length > 0 && (
-          <select value={cenario} onChange={(e) => setCenario(e.target.value)}>
-            <option value="todos">Cenário: todos</option>
-            {cenarios.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        )}
-        {figurinos.length > 0 && (
-          <select value={figurino} onChange={(e) => setFigurino(e.target.value)}>
-            <option value="todos">Figurino: todos</option>
-            {figurinos.map((f) => <option key={f} value={f}>{f}</option>)}
-          </select>
-        )}
+        <div className="filtro-linha">
+          <button className={"btn-filtros" + (nFiltros ? " ativo" : "")} onClick={() => setFiltrosAbertos(true)}>
+            <span className="ico">☰</span> Filtros{nFiltros ? <b>{nFiltros}</b> : null}
+          </button>
+          {nFiltros > 0 && (
+            <div className="filtros-ativos">
+              {fase !== "todas" && <button className="chip ativo" onClick={() => setFase("todas")}>{fase} ✕</button>}
+              {dia !== "todos" && <button className="chip ativo" onClick={() => setDia("todos")}>{dataCurta(dia)} ✕</button>}
+              {cenario !== "todos" && <button className="chip ativo" onClick={() => setCenario("todos")}>{cenario} ✕</button>}
+              {figurino !== "todos" && <button className="chip ativo" onClick={() => setFigurino("todos")}>{figurino} ✕</button>}
+            </div>
+          )}
+        </div>
       </div>
 
-      {fasesPresentes.length > 0 && (
-        <div className="filters fases">
-          <button className={"chip" + (fase === "todas" ? " ativo" : "")} onClick={() => setFase("todas")}>Todas as fases</button>
-          {fasesPresentes.map((f) => (
-            <button key={f} className={"chip " + faseClasse(f) + (fase === f ? " ativo" : "")} onClick={() => setFase(f)}>
-              <span className="fdot" />{f}
-            </button>
-          ))}
+      {filtrosAbertos && (
+        <div className="sheet-fundo filtros-fundo" onClick={() => setFiltrosAbertos(false)}>
+          <div className="sheet filtros-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="fs-topo"><h3>Filtros</h3><button className="fs-fechar" onClick={() => setFiltrosAbertos(false)} aria-label="Fechar">✕</button></div>
+            {[
+              ["Fase", fasesPresentes, fase, setFase, "todas"],
+              ["Data de gravação", datas, dia, setDia, "todos"],
+              ["Cenário", cenarios, cenario, setCenario, "todos"],
+              ["Figurino", figurinos, figurino, setFigurino, "todos"],
+            ].map(([rot, lista, val, set, vazio]) => (
+              <div className="fs-grupo" key={rot}>
+                <div className="fs-rot">{rot}</div>
+                {lista.length === 0 ? <div className="fs-vazio">Nenhum card com {rot.toLowerCase()} ainda. Preenche dentro do card.</div> : (
+                  <div className="fs-chips">
+                    <button className={"chip" + (val === vazio ? " ativo" : "")} onClick={() => set(vazio)}>Todos</button>
+                    {lista.map((v) => (
+                      <button key={v} className={"chip" + (rot === "Fase" ? " " + faseClasse(v) : "") + (val === v ? " ativo" : "")} onClick={() => set(v)}>
+                        {rot === "Fase" && <span className="fdot" />}{rot === "Data de gravação" ? dataCurta(v) : v}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div className="fs-acoes">
+              <button className="fs-limpar" onClick={limparFiltros}>Limpar</button>
+              <button className="fs-ver" onClick={() => setFiltrosAbertos(false)}>Ver {filtrados.length} {filtrados.length === 1 ? "roteiro" : "roteiros"}</button>
+            </div>
+          </div>
         </div>
       )}
-
-      </div>
 
       {erro && <div className="empty">⚠️ {erro.msg}</div>}
       {!cards && !erro && <div className="empty">Carregando roteiros...</div>}
@@ -319,16 +338,11 @@ export default function BoardPage() {
                       <h3>{c.title}</h3>
                       {c.hook && <div className="hook">{c.hook}</div>}
                       <div className="tags">
-                        {c.day && <span className="tag dia">{(DIAS.find((d) => d.id === c.day) || {}).label || c.day}</span>}
+                        {dataCurta(c.day) && <span className="tag dia">📅 {dataCurta(c.day)}</span>}
                         {c.setting && <span className="tag">{c.setting}</span>}
                         {c.outfit && <span className="tag">{c.outfit}</span>}
                       </div>
                       {c.take_notes && <div className="take">Nota: {c.take_notes}</div>}
-                      {PROXIMO[c.status] && (
-                        <span className="avancar" onClick={(e) => avancar(e, c)}>
-                          Marcar como {PROXIMO[c.status][1]} →
-                        </span>
-                      )}
                     </a>
                   ))}
                 </div>
