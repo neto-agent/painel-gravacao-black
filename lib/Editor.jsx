@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useRef } from "react";
-import { CAMPOS_TEXTO, DIAS } from "./campos";
+import { useEffect, useRef, useState } from "react";
+import { CAMPOS_TEXTO } from "./campos";
 import { FASES, faseClasse } from "./fases";
 import { autoGrow } from "./useAutosave";
 
@@ -30,11 +30,19 @@ function Area({ campo, valor, onChange, onBlur, foco }) {
 
 /** Editor de todos os campos. `valores` é o rascunho; `onChange(key, value)` a cada tecla. */
 export default function Editor({ valores, onChange, onBlur, focoCampo, camposExtrasAbertos = true }) {
+  const [sugestoes, setSugestoes] = useState({ cenarios: [], figurinos: [] });
+  useEffect(() => {
+    fetch("/api/cards").then((r) => r.json()).then((j) => {
+      const cs = j.cards || [];
+      const uniq = (k) => [...new Set(cs.map((c) => (c[k] || "").trim()).filter(Boolean))].sort();
+      setSugestoes({ cenarios: uniq("setting"), figurinos: uniq("outfit") });
+    }).catch(() => {});
+  }, []);
   const titRef = useRef(null);
   useEffect(() => { autoGrow(titRef.current); }, [valores.title]);
   useEffect(() => { if (focoCampo === "title" && titRef.current) titRef.current.focus(); }, [focoCampo]);
   const principais = CAMPOS_TEXTO.filter((c) => ["hook", "script"].includes(c.key));
-  const resto = CAMPOS_TEXTO.filter((c) => !["hook", "script"].includes(c.key));
+  const resto = CAMPOS_TEXTO.filter((c) => !["hook", "script", "setting", "outfit"].includes(c.key));
 
   return (
     <div className="editor">
@@ -64,16 +72,25 @@ export default function Editor({ valores, onChange, onBlur, focoCampo, camposExt
         </div>
       </div>
 
-      <div className="ed-campo">
-        <span className="ed-label">Dia de gravação</span>
-        <div className="ed-chips">
-          {DIAS.map((d) => (
-            <button type="button" key={d.id || "nenhum"}
-              className={"chip" + ((valores.day || "") === d.id ? " ativo" : "")}
-              onClick={() => onChange("day", d.id, true)}>{d.label}</button>
-          ))}
-        </div>
+      <div className="ed-linha">
+        <label className="ed-campo">
+          <span className="ed-label">Data de gravação</span>
+          <input type="date" className="ed-input" value={valores.day || ""}
+            onChange={(e) => onChange("day", e.target.value, true)} />
+        </label>
+        <label className="ed-campo">
+          <span className="ed-label">Cenário</span>
+          <input className="ed-input" list="lista-cenarios" value={valores.setting || ""} placeholder="Ex: Cozinha"
+            onChange={(e) => onChange("setting", e.target.value)} onBlur={onBlur} />
+        </label>
+        <label className="ed-campo">
+          <span className="ed-label">Figurino</span>
+          <input className="ed-input" list="lista-figurinos" value={valores.outfit || ""} placeholder="Ex: Camiseta preta"
+            onChange={(e) => onChange("outfit", e.target.value)} onBlur={onBlur} />
+        </label>
       </div>
+      <datalist id="lista-cenarios">{sugestoes.cenarios.map((v) => <option key={v} value={v} />)}</datalist>
+      <datalist id="lista-figurinos">{sugestoes.figurinos.map((v) => <option key={v} value={v} />)}</datalist>
 
       {principais.map((c) => (
         <Area key={c.key} campo={c} valor={valores[c.key]} onChange={onChange} onBlur={onBlur} foco={focoCampo === c.key} />
