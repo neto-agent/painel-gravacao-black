@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { listar, salvar, proximoId } from "../../../lib/store";
-import { EDITAVEIS, DIA_IDS, dayLabel } from "../../../lib/campos";
+import { EDITAVEIS, isData, dayLabel } from "../../../lib/campos";
 import { FASES } from "../../../lib/fases";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ export async function POST(request) {
   }
   row.title = title;
   if (!row.phase || !FASES.includes(row.phase)) row.phase = "A definir";
-  if (row.day && !DIA_IDS.includes(row.day)) delete row.day;
+  if (row.day && !isData(row.day)) delete row.day;
   row.day_label = dayLabel(row.day);
   row.status = "a_gravar";
   row.take_notes = "";
