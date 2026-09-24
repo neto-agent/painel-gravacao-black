@@ -6,6 +6,8 @@ Funciona no celular (dá pra usar como teleprompter) e no computador.
 
 **Ver funcionando antes de instalar:** https://painel-gravacao.vercel.app (demonstração: pode mexer, mas nada é salvo)
 
+**Vídeo passo a passo (1min40, narrado):** https://painel-gravacao.vercel.app/5-tutorial.mp4 (também está em [`public/4-tutorial.mp4`](public/4-tutorial.mp4))
+
 ## Colocar no ar (uns 5 minutos, tudo grátis)
 
 **O que você precisa:** uma conta no GitHub e uma na Vercel. Não precisa saber programar nem ter cartão de crédito.
