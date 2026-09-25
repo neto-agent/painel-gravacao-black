@@ -5,14 +5,8 @@ import { useRouter } from "next/navigation";
 import { FASES, faseClasse } from "../lib/fases";
 import { dataCurta } from "../lib/campos";
 import Biblioteca from "../lib/Biblioteca";
+import { COLUNAS_PADRAO } from "../lib/colunas";
 import { Configurar, BoasVindas } from "../lib/Avisos";
-
-const COLUNAS = [
-  { id: "a_gravar", label: "A gravar" },
-  { id: "gravando", label: "Gravando" },
-  { id: "gravado", label: "Gravado" },
-  { id: "regravar", label: "Regravar" },
-];
 
 
 const norm = (v) => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -37,6 +31,9 @@ const PROXIMO = { a_gravar: ["gravando", "Gravando"], gravando: ["gravado", "Gra
 
 export default function BoardPage() {
   const [cards, setCards] = useState(null);
+  const [colunas, setColunas] = useState(COLUNAS_PADRAO);
+  const [criandoEtapa, setCriandoEtapa] = useState(false);
+  const [nomeEtapa, setNomeEtapa] = useState("");
   const [erro, setErro] = useState(null);
   const [dia, setDia] = useState("todos");
   const [cenario, setCenario] = useState("todos");
@@ -95,7 +92,8 @@ export default function BoardPage() {
   async function avancar(e, card) {
     e.preventDefault();
     e.stopPropagation();
-    const prox = PROXIMO[card.status];
+    const i = colunas.findIndex((c) => c.id === card.status);
+    const prox = PROXIMO[card.status] || (i >= 0 && colunas[i + 1] ? [colunas[i + 1].id, colunas[i + 1].label] : null);
     if (!prox) return;
     mover(card, prox[0]);
   }
@@ -168,7 +166,7 @@ export default function BoardPage() {
       const res = await fetch("/api/cards", { cache: "no-store" });
       if (res.status === 401) { window.location.href = "/login"; return; }
       const data = await res.json();
-      if (data.cards) { setCards(data.cards); setErro(null); setInfo({ demo: data.demo, aberto: data.aberto }); }
+      if (data.cards) { setColunas(data.colunas || COLUNAS_PADRAO); setCards(data.cards); setErro(null); setInfo({ demo: data.demo, aberto: data.aberto }); }
       else setErro({ msg: data.error || "Erro ao carregar", codigo: data.codigo });
     } catch {
       setErro({ msg: "Sem conexão. Confere a internet e recarrega a página." });
@@ -182,6 +180,16 @@ export default function BoardPage() {
     window.addEventListener("focus", onFocus);
     return () => { clearInterval(t); window.removeEventListener("focus", onFocus); };
   }, []);
+
+  async function adicionarEtapa(e) {
+    e.preventDefault();
+    if (info.demo) { setAviso("Modo demonstração: nada é salvo aqui."); return; }
+    const r = await fetch("/api/colunas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ label: nomeEtapa }) });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) { setAviso(data.error || "Não consegui adicionar a etapa."); return; }
+    setColunas((cs) => [...cs, data.coluna]);
+    setNomeEtapa(""); setCriandoEtapa(false);
+  }
 
   const base = useMemo(() => cards || [], [cards]);
   const cenarios = useMemo(() => [...new Set(base.map((c) => c.setting).filter(Boolean))].sort(), [base]);
@@ -253,7 +261,7 @@ export default function BoardPage() {
         </div>
         {cards && (
           <div className="pulos">
-            {COLUNAS.map((col) => (
+            {colunas.map((col) => (
               <button key={col.id} className="pulo" onClick={() => irPara(col.id)}>
                 <span className={`dot d-${col.id}`} />{col.label}<b>{filtrados.filter((c) => c.status === col.id).length}</b>
               </button>
@@ -315,8 +323,8 @@ export default function BoardPage() {
       {!cards && !erro && <div className="empty">Carregando roteiros...</div>}
 
       {cards && (
-        <div className="board" style={{ "--cols": COLUNAS.map((col) => { const n = filtrados.filter((c) => c.status === col.id).length; return n === 0 ? "minmax(190px, .55fr)" : `minmax(260px, ${Math.min(4, Math.max(1, Math.sqrt(n))).toFixed(2)}fr)`; }).join(" ") }}>
-          {COLUNAS.map((col) => {
+        <div className="board" style={{ "--cols": colunas.map((col) => { const n = filtrados.filter((c) => c.status === col.id).length; return n === 0 ? "minmax(190px, .55fr)" : `minmax(260px, ${Math.min(4, Math.max(1, Math.sqrt(n))).toFixed(2)}fr)`; }).join(" ") + " minmax(190px, .55fr)" }}>
+          {colunas.map((col) => {
             const itens = filtrados.filter((c) => c.status === col.id);
             return (
               <section className={"col" + (itens.length === 0 ? " vazia" : "") + (arrastando && arrastando.alvo === col.id ? " alvo" : "")} key={col.id} id={"sec-" + col.id}>
@@ -349,6 +357,14 @@ export default function BoardPage() {
               </section>
             );
           })}
+          <section className="col etapa-nova">
+            {!criandoEtapa ? <button className="etapa-adicionar" onClick={() => setCriandoEtapa(true)}>＋ Adicionar etapa</button> :
+              <form onSubmit={adicionarEtapa} className="etapa-form">
+                <label htmlFor="nome-etapa">Nome da etapa</label>
+                <input id="nome-etapa" autoFocus maxLength={40} value={nomeEtapa} onChange={(e) => setNomeEtapa(e.target.value)} placeholder="Ex.: Em edição" />
+                <div><button type="submit">Adicionar</button><button type="button" onClick={() => { setCriandoEtapa(false); setNomeEtapa(""); }}>Cancelar</button></div>
+              </form>}
+          </section>
         </div>
       )}
 
@@ -361,7 +377,7 @@ export default function BoardPage() {
         </div>
       )}
       {arrastando && (
-        <div className="solta-pill">Soltar em: <b>{(COLUNAS.find((c) => c.id === arrastando.alvo) || {}).label}</b></div>
+        <div className="solta-pill">Soltar em: <b>{(colunas.find((c) => c.id === arrastando.alvo) || {}).label}</b></div>
       )}
       {aviso && <div className="toast"><span>{aviso}</span><button onClick={() => setAviso(null)}>OK</button></div>}
 

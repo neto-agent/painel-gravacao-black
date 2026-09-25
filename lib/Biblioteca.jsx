@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { REFERENCIAS } from "./referencias";
 import { FASES, faseClasse } from "./fases";
+import { INSTAGRAM, instagramUrl, instagramEmbed } from "./instagram";
 
 // Link público de busca na Biblioteca de Anúncios da Meta (anúncios ativos no Brasil).
 export const linkMeta = (q) =>
@@ -12,6 +13,7 @@ export const linkMeta = (q) =>
 export default function Biblioteca({ demo }) {
   const router = useRouter();
   const [fase, setFase] = useState("todas");
+  const [categoria, setCategoria] = useState("Todas");
   const [aberto, setAberto] = useState(null);
   const [criando, setCriando] = useState(null);
   const [msg, setMsg] = useState(null);
@@ -77,6 +79,15 @@ export default function Biblioteca({ demo }) {
           );
         })}
       </div>
+      <section className="ig-section" aria-label="Feed de referências do Instagram">
+        <div className="ig-heading"><div><span className="ig-kicker">Inspiração visual</span><h2>Feed de referências</h2><p>Posts e vídeos compartilhados para consultar na hora de criar. O Instagram pode limitar a reprodução incorporada; nesse caso, abra o original.</p></div><span className="ig-total">{INSTAGRAM.length} referências</span></div>
+        <div className="ig-filtros" aria-label="Filtrar referências">{["Todas", "Reels", "Carrosséis", "Posts"].map((x) => <button key={x} className={categoria === x ? "ativo" : ""} onClick={() => setCategoria(x)}>{x}</button>)}</div>
+        <div className="ig-feed">{INSTAGRAM.filter((r) => categoria === "Todas" || r.categoria === categoria).map((r) => <article className="ig-item" key={r.code}>
+          <div className="ig-item-top"><span>{r.categoria}</span><h3>{r.titulo}</h3><p>{r.nota}</p></div>
+          <div className="ig-frame"><iframe title={`Instagram: ${r.titulo}`} src={instagramEmbed(r)} loading="lazy" allowFullScreen allow="encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin" /></div>
+          <a href={instagramUrl(r)} target="_blank" rel="noopener noreferrer">Abrir no Instagram ↗</a>
+        </article>)}</div>
+      </section>
       {msg && <div className="toast"><span>{msg}</span><button onClick={() => setMsg(null)}>OK</button></div>}
     </div>
   );

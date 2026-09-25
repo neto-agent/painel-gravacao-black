@@ -3,21 +3,18 @@
 import { useCallback, useEffect, useRef, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { faseClasse } from "../../../lib/fases";
+import { COLUNAS_PADRAO } from "../../../lib/colunas";
 import Editor from "../../../lib/Editor";
 import { useAutosave } from "../../../lib/useAutosave";
 import { EDITAVEIS } from "../../../lib/campos";
 
-const COLUNAS = [
-  { id: "a_gravar", label: "A gravar" },
-  { id: "gravando", label: "Gravando" },
-  { id: "gravado", label: "Gravado" },
-  { id: "regravar", label: "Regravar" },
-];
+
 
 export default function CardPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
   const [card, setCard] = useState(null);
+  const [colunas, setColunas] = useState(COLUNAS_PADRAO);
   const [erro, setErro] = useState(null);
   const [rolling, setRolling] = useState(false);
   const [vel, setVel] = useState(40); // px por segundo
@@ -103,6 +100,7 @@ export default function CardPage({ params }) {
       const res = await fetch("/api/cards", { cache: "no-store" });
       if (res.status === 401) { window.location.href = "/login"; return; }
       const data = await res.json();
+      setColunas(data.colunas || COLUNAS_PADRAO);
       const c = (data.cards || []).find((x) => x.id === id);
       if (c) {
         setCard((antigo) => {
@@ -195,7 +193,7 @@ export default function CardPage({ params }) {
           </div>
         )}
         <div className="status-row">
-          {COLUNAS.map((c) => (
+          {colunas.map((c) => (
             <button
               key={c.id}
               className={`status-btn s-${c.id}` + (card.status === c.id ? " ativo" : "")}

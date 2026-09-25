@@ -7,7 +7,7 @@ const PUBLIC_PREFIXES = ["/login", "/api/panel-auth"];
  * Sem PANEL_PASSWORD o painel fica aberto pra quem tiver o link. */
 export async function middleware(request) {
   // Modo demonstração (DEMO=1): qualquer um vê, ninguém salva.
-  if (process.env.DEMO === "1" && request.nextUrl.pathname.startsWith("/api/cards") && request.method !== "GET") {
+  if (process.env.DEMO === "1" && (request.nextUrl.pathname.startsWith("/api/cards") || request.nextUrl.pathname.startsWith("/api/colunas")) && request.method !== "GET") {
     return NextResponse.json({ error: "Modo demonstração: nada é salvo aqui. Crie o teu painel pra editar." }, { status: 403 });
   }
   const password = process.env.PANEL_PASSWORD;

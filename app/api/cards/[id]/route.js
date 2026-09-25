@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import { pegar, salvar } from "../../../../lib/store";
+import { pegar, salvar, listarColunas } from "../../../../lib/store";
 import { EDITAVEIS, isData, dayLabel } from "../../../../lib/campos";
 import { FASES } from "../../../../lib/fases";
 
 export const dynamic = "force-dynamic";
-
-const STATUSES = ["a_gravar", "gravando", "gravado", "regravar"];
 
 export async function PATCH(request, { params }) {
   const { id } = await params;
@@ -15,7 +13,7 @@ export async function PATCH(request, { params }) {
   }
   const update = {};
   if (typeof body.status === "string") {
-    if (!STATUSES.includes(body.status)) return NextResponse.json({ error: "status inválido" }, { status: 400 });
+    if (!(await listarColunas()).some((c) => c.id === body.status)) return NextResponse.json({ error: "status inválido" }, { status: 400 });
     update.status = body.status;
   }
   if (typeof body.take_notes === "string") update.take_notes = body.take_notes;

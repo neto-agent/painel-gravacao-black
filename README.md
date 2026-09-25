@@ -1,6 +1,6 @@
 # Painel de Gravação · Black Friday
 
-Painel pra organizar a produção de criativos da Black Friday. Cada criativo vira um card com roteiro, texto na tela, legenda, cenário e figurino, e o card anda pelas colunas **A gravar → Gravando → Gravado → Regravar**.
+Painel pra organizar a produção de criativos da Black Friday. Cada criativo vira um card com roteiro, texto na tela, legenda, cenário e figurino, e o card anda pelas colunas **A gravar → Gravando → Gravado → Regravar (e você pode acrescentar outras etapas)**.
 
 Funciona no celular (dá pra usar como teleprompter) e no computador.
 
@@ -39,9 +39,10 @@ Na primeira vez o painel abre com 5 roteiros de exemplo, um por fase. Dá pra ed
 - Filtros por dia de gravação, cenário, figurino e fase, pra gravar em lote
 - Busca por título, roteiro ou legenda
 - Teleprompter com rolagem automática e tamanho de letra ajustável
+- Adicionar novas etapas ao kanban; elas ficam salvas no mesmo Redis do painel e aparecem pra equipe
 - Arrastar e soltar os cards entre as colunas (segura o ⠿ do card), ou tocar em "Marcar como..."
 - Apagar com um toque no 🗑, com botão de desfazer
-- **Biblioteca de referências**: formatos que funcionam em cada fase (post-it, convite direto, tela dividida, depoimento + ponte, comparativo, contagem regressiva e mais), com o porquê de cada um, esqueleto de roteiro e link pra ver exemplos reais na Biblioteca de Anúncios da Meta. Um toque e vira card
+- **Biblioteca de referências**: feed dos posts e Reels compartilhados, incorporados do Instagram (dependem da disponibilidade do Instagram), mais formatos que funcionam em cada fase (post-it, convite direto, tela dividida, depoimento + ponte, comparativo, contagem regressiva e mais), com o porquê de cada um, esqueleto de roteiro e link pra ver exemplos reais na Biblioteca de Anúncios da Meta. Um toque e vira card
 - Anotação do melhor take em cada card
 - Senha única pro time todo
 
